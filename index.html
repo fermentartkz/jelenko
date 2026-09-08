@@ -976,8 +976,10 @@
     if (e.key === 'Escape') document.getElementById('privacy-overlay').classList.remove('active');
   });
   // Click outside to close
-  document.getElementById('privacy-overlay').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('active');
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('privacy-overlay').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('active');
+    });
   });
 
 </script>
