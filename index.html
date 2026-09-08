@@ -1,58 +1,66 @@
 <!DOCTYPE html>
 <html lang="hr">
 <head>
-	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18061738660"></script>
-	<script>
-	  window.dataLayer = window.dataLayer || [];
-	  function gtag(){dataLayer.push(arguments);}
-	  gtag('js', new Date());
-
-	  gtag('config', 'AW-18061738660');
-	</script>
-	<!-- Event snippet for Page view conversion page -->
 <script>
-  gtag('event', 'conversion', {'send_to': 'AW-18061738660/-ru0CKKPyJkcEKSFwaRD'});
-</script>
+  // Basic consent: load advertising measurement only after an explicit choice.
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    ad_storage: 'denied', ad_user_data: 'denied',
+    ad_personalization: 'denied', analytics_storage: 'denied'
+  });
+  const consentKey = 'jelenkoMeasurementConsentV1';
+  let measurementAllowed = false;
+  let googleTagStarted = false;
+  // Set only to the NEW Maps-click action from Google Ads. Never reuse Page view.
+  const mapsConversionDestination = 'AW-18061738660/5QecCP_p2_AcEKSFwaRD';
 
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'analytics_storage': 'denied'
+  function setMeasurementConsent(allowed) {
+    measurementAllowed = allowed;
+    gtag('consent', 'update', {
+      ad_storage: allowed ? 'granted' : 'denied',
+      ad_user_data: allowed ? 'granted' : 'denied',
+      ad_personalization: 'denied', analytics_storage: 'denied'
     });
-  </script>
+    if (allowed && !googleTagStarted) {
+      googleTagStarted = true;
+      gtag('js', new Date());
+      gtag('config', 'AW-18061738660');
+      const tag = document.createElement('script');
+      tag.async = true;
+      tag.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18061738660';
+      document.head.appendChild(tag);
+    }
+    try { localStorage.setItem(consentKey, allowed ? 'granted' : 'denied'); }
+    catch (_) { /* The choice still applies to the current page. */ }
+    const banner = document.getElementById('cookie-banner');
+    if (banner) banner.hidden = true;
+  }
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-123456789"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-123456789');
-  </script>
-
-  <script>
-    function acceptCookies() {
-      gtag('consent', 'update', {
-        'ad_storage': 'granted',
-        'ad_user_data': 'granted',
-        'ad_personalization': 'granted',
-        'analytics_storage': 'granted'
+  document.addEventListener('DOMContentLoaded', function () {
+    const banner = document.getElementById('cookie-banner');
+    let saved = null;
+    try { saved = localStorage.getItem(consentKey); } catch (_) {}
+    if (saved === 'granted' || saved === 'denied') setMeasurementConsent(saved === 'granted');
+    else banner.hidden = false;
+    document.getElementById('measurement-accept').addEventListener('click', () => setMeasurementConsent(true));
+    document.getElementById('measurement-reject').addEventListener('click', () => setMeasurementConsent(false));
+    document.getElementById('measurement-settings').addEventListener('click', function () {
+      banner.hidden = false;
+      document.getElementById('measurement-reject').focus();
+    });
+    document.querySelectorAll('a.maps-btn').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (!measurementAllowed) return;
+        // A diagnostic event, not a purchase or a verified store visit.
+        gtag('event', 'directions_click', { send_to: 'AW-18061738660' });
+        if (mapsConversionDestination) {
+          gtag('event', 'conversion', { send_to: mapsConversionDestination });
+        }
       });
-      document.getElementById('cookie-banner').style.display = 'none';
-      localStorage.setItem('cookiesAccepted', 'true');
-    }
-    
-    // Provjera ako je već prihvaćeno da se banner ne dize stalno
-    window.onload = function() {
-      if(localStorage.getItem('cookiesAccepted') === 'true') {
-        acceptCookies();
-      }
-    }
-  </script>
+    });
+  });
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Jelenko Artisan Bakery – sourdough kruh bez aditiva, pečen s ljubavlju u Križevcima. Augusta Šenoe 7.">
@@ -686,9 +694,11 @@
 </head>
 <body>
 
-<div id="cookie-banner" style="position:fixed; bottom:0; width:100%; background:#f1f1f1; color:#333; padding:20px; text-align:center; z-index:9999; border-top: 1px solid #ccc;">
-  Ova stranica koristi kolačiće za bolju uslugu Pekare Jelenko. 
-  <button onclick="acceptCookies()" style="background:#4CAF50; color:white; border:none; padding:10px 20px; margin-left:15px; cursor:pointer; border-radius:5px;">Prihvaćam</button>
+<div id="cookie-banner" hidden role="region" aria-label="Izbor mjerenja" style="position:fixed; bottom:0; width:100%; background:#f1f1f1; color:#333; padding:16px; text-align:center; z-index:9999; border-top:1px solid #ccc;">
+  <p>Uz vaše dopuštenje koristimo kolačiće za mjerenje uspješnosti oglasa, primjerice otvaranja karte do pekare.</p>
+  <button id="measurement-reject" type="button" style="padding:10px 16px; margin:8px; cursor:pointer;">Nemoj dopustiti</button>
+  <button id="measurement-accept" type="button" style="padding:10px 16px; margin:8px; cursor:pointer;">Dopusti kolačiće</button>
+  <button type="button" style="display:block; margin:4px auto 0; border:0; background:none; color:inherit; text-decoration:underline; cursor:pointer;" onclick="document.getElementById('privacy-overlay').classList.add('active')">Više o privatnosti</button>
 </div>
 <!-- ─── HEADER ─── -->
 <header id="top-header">
@@ -915,6 +925,7 @@
   <p class="footer-addr">Augusta Šenoe 7, Križevci</p>
   <p>© 2025 Jelenko Artisan Bakery · Sva prava pridržana.<br>
   </p><button class="footer-privacy-link" onclick="document.getElementById('privacy-overlay').classList.add('active')">Pravila privatnosti i prigovor</button>
+<button id="measurement-settings" type="button" class="footer-privacy-link">Postavke mjerenja</button>
 </footer>
 
 <script>
@@ -966,8 +977,10 @@
     if (e.key === 'Escape') document.getElementById('privacy-overlay').classList.remove('active');
   });
   // Click outside to close
-  document.getElementById('privacy-overlay').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('active');
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('privacy-overlay').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('active');
+    });
   });
 
 </script>
@@ -982,13 +995,13 @@
     <p>FermentArt d.o.o.<br>V. Koroskenya 15, 48260 Križevci<br>OIB: 62572958878</p>
 
     <h2>2. Koje podatke prikupljamo</h2>
-    <p>Ova web stranica ne sadrži obrasce za kontakt niti prikuplja vaše osobne podatke poput imena, e-mail adrese ili broja telefona. Prikupljamo isključivo tehničke, anonimizirane podatke putem kolačića trećih strana (Google Ads) kako bismo izmjerili učinkovitost našeg oglašavanja.</p>
+    <p>Ova web stranica ne sadrži obrasce za kontakt niti prikuplja vaše osobne podatke poput imena, e-mail adrese ili broja telefona. Ako dopustite kolačiće za mjerenje, Google Ads obrađuje podatke o korištenju stranice i kliku na kartu radi mjerenja uspješnosti naših oglasa. Podaci se dijele s Googleom; ne tvrdimo da je ova obrada potpuno anonimna.</p>
 
     <h2>3. Kako koristimo podatke</h2>
     <p>Koristimo Google Ads alat za praćenje konverzija. Kada kliknete na naš oglas, Google postavlja privremeni kolačić na vaše računalo. Ti nam podaci govore koliko je korisnika kliknulo na oglas i došlo do informacija o našoj lokaciji, ali nam ne omogućuju da vas osobno identificiramo.</p>
 
     <h2>4. Kolačići (cookies)</h2>
-    <p>Web stranica koristi osnovne kolačiće za poboljšanje funkcionalnosti. Ne koristimo kolačiće za praćenje korisnika u komercijalne svrhe.</p>
+    <p>Vaš izbor spremamo u preglednik kako ga ne bismo ponovno tražili pri svakom posjetu. Google Ads mjerenje uključujemo samo uz vaše dopuštenje. Izbor možete promijeniti putem poveznice „Postavke mjerenja” u podnožju. Više o Googleovoj obradi podataka pročitajte na <a href="https://business.safety.google/privacy/" target="_blank" rel="noopener noreferrer">Googleovoj stranici o privatnosti</a>.</p>
 
     <h2>5. Koliko dugo čuvamo podatke?</h2>
     <p>Vaše osobne podatke ne prikupljamo i ne čuvamo.</p>
